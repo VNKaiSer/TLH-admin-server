@@ -1,0 +1,241 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model role {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  employees employees[]
+}
+
+model company_detail {
+  id        Int      @id @default(autoincrement())
+  compName  String
+  phone     String
+  address   address? @relation(fields: [addressId], references: [id])
+  mst       String
+  license   String
+  avt       String
+  type      Int
+  addressId Int?
+}
+
+model categories {
+  id       Int        @id @default(autoincrement())
+  name     String
+  products products[]
+}
+
+model variants {
+  id             Int      @id @default(autoincrement())
+  keyword        String
+  label          String
+  type           String
+  default_option String
+  isVisible      Int      @default(0)
+  // variants_options variants_options[]
+  product_id     Int
+  products       products @relation(fields: [product_id], references: [id])
+}
+
+model products {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String
+  main_image    String
+  createAt      DateTime        @default(now())
+  variants      variants[]
+  sales         sale[]
+  categories    categories?     @relation(fields: [categoriesId], references: [id])
+  categoriesId  Int?
+  type          String          @default("")
+  product_image product_image[]
+  product_price product_price[]
+  orderDetail   order_details[]
+}
+
+model product_image {
+  id         Int       @id @default(autoincrement())
+  path       String    @unique
+  products   products? @relation(fields: [product_id], references: [id])
+  product_id Int?      @unique
+}
+
+model sale {
+  id         Int       @id @default(autoincrement())
+  amount     Float
+  type       String
+  product_id Int
+  products   products? @relation(fields: [product_id], references: [id])
+}
+
+model product_price {
+  id         Int       @id @default(autoincrement())
+  price      Float
+  products   products? @relation(fields: [product_id], references: [id])
+  product_id Int?      @unique
+}
+
+model customers {
+  id                        Int                        @id @default(autoincrement())
+  name                      String
+  dob                       DateTime?
+  phone                     String                     @unique
+  avt                       String
+  email                     String?
+  isActived                 Boolean                    @default(true)
+  createAt                  DateTime                   @default(now())
+  updateAt                  DateTime?                  @default(now()) @updatedAt
+  introduce_code            String?
+  allowMembership           Boolean?
+  referral_code             String?
+  isMembership              Boolean                    @default(false)
+  customer_membership       customer_membership?
+  orders                    orders[]
+  cart                      cart_item?
+  customer_on_code          customer_on_code[]
+  customer_discount_history customer_discount_history?
+  address                   address?                   @relation(fields: [addressId], references: [id])
+  addressId                 Int?
+}
+
+model customer_membership {
+  id          Int       @id @default(autoincrement())
+  customerId  Int       @unique
+  customer    customers @relation(fields: [customerId], references: [id])
+  points      Int
+  ref_num     Int       @default(0)
+  ref_product Int       @default(0)
+  ref_service Int       @default(0)
+  createAt    DateTime  @default(now())
+  updateAt    DateTime? @default(now()) @updatedAt
+}
+
+model customer_discount_history {
+  id         Int               @id @default(autoincrement())
+  customerId Int               @unique
+  codeIsUse  customer_on_code?
+  customer   customers         @relation(fields: [customerId], references: [id])
+  discount   Float
+  createAt   DateTime          @default(now())
+}
+
+model address {
+  id             Int              @id @default(autoincrement())
+  country        String
+  province       String
+  district       String
+  ward           String
+  street         String
+  company_detail company_detail[]
+  employees      employees[]
+  customers      customers[]
+}
+
+model cart_item {
+  id         Int       @id @default(autoincrement())
+  product_id Int
+  quantity   Int
+  customerId Int       @unique
+  customer   customers @relation(fields: [customerId], references: [id])
+}
+
+model employees {
+  id           Int       @id @default(autoincrement())
+  name         String
+  dob          DateTime
+  phone        String    @unique
+  avt          String
+  email        String
+  isActived    Boolean   @default(true)
+  passwordHash String
+  createAt     DateTime  @default(now())
+  updateAt     DateTime? @updatedAt
+  lastLogin    DateTime?
+  address      address?  @relation(fields: [address_id], references: [id])
+  role         role      @relation(fields: [role_id], references: [id])
+  role_id      Int
+  address_id   Int?
+}
+
+model posts {
+  id       Int       @id @default(autoincrement())
+  title    String
+  content  String
+  sumary   String
+  image    String
+  createAt DateTime  @default(now())
+  updateAt DateTime? @updatedAt
+  status   String    @default("active")
+}
+
+model orders {
+  id          Int       @id @default(autoincrement())
+  description String?
+  createAt    DateTime  @default(now())
+  updateAt    DateTime?
+  status      String    @default("WAIT_FOR_ACCEPT")
+  totalPrice  Float?
+
+  customerId  Int
+  customer    customers       @relation(fields: [customerId], references: [id])
+  orderDetail order_details[]
+}
+
+model order_details {
+  id         Int       @id @default(autoincrement())
+  option     String
+  order      orders    @relation(fields: [orderId], references: [id])
+  orderId    Int
+  product    products  @relation(fields: [productId], references: [id])
+  productId  Int
+  quantity   Int
+  selectDate DateTime?
+  selectTime DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime? @updatedAt
+}
+
+model code {
+  id               Int                @id @default(autoincrement())
+  name             String             @unique
+  type             String
+  quantity         Int
+  discount         Float
+  start_date       DateTime
+  end_date         DateTime
+  createAt         DateTime           @default(now()) @updatedAt
+  updateAt         DateTime?          @updatedAt
+  promotionId      Int
+  promotion        promotions         @relation(fields: [promotionId], references: [id])
+  customer_on_code customer_on_code[]
+}
+
+model promotions {
+  id        Int       @id @default(autoincrement())
+  link      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  code      code[]
+}
+
+model customer_on_code {
+  codeId Int
+  code   code @relation(fields: [codeId], references: [id])
+
+  customerId                Int
+  customer                  customers                  @relation(fields: [customerId], references: [id])
+  status                    Int                        @default(1)
+  discountId                Int                        @unique
+  customer_discount_history customer_discount_history? @relation(fields: [discountId], references: [id])
+
+  @@id([codeId, customerId])
+}

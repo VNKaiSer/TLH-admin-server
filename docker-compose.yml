@@ -1,0 +1,27 @@
+version: '3.8'
+name: thelibrahouse
+services:
+  # api:
+  #   image: thelibrahouse/app
+  #   container_name: thelibrahouse
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: .
+  #   depends_on:
+  #     - postgres
+  #   environment:
+  #     DATABASE_URL: postgres://thelibrahouse:thelibrahouse@postgres:5432/thelibrahouse?schema=public
+  #     NODE_ENV: development
+  #     PORT: 3333
+  #   ports:
+  #     - '8080:3333'
+
+  postgres:
+    image: postgres:10.4
+    container_name: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: thelibrahouse
+      POSTGRES_PASSWORD: thelibrahouse
+      POSTGRES_DB: thelibrahouse
